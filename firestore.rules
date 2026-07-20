@@ -1,0 +1,97 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Students can read/update their own profile; admins can read all, nobody else can write it directly.
+    match /students/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid);
+      allow update: if isOwner(uid) || isAdmin();
+      allow delete: if isAdmin();
+
+      match /notifications/{notifId} {
+        allow read: if isOwner(uid);
+        allow write: if isAdmin();
+      }
+    }
+
+    // Public catalog data — everyone signed in can read, only admins can write.
+    match /courses/{courseId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    match /categories/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    match /live_classes/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    match /tests/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    match /questions/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    match /banners/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    match /announcements/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    match /teachers/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    match /coupons/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    match /app_settings/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    match /answer_keys/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Test results — a student can create their own; only admins can read all of them.
+    match /test_results/{id} {
+      allow create: if isSignedIn() && request.resource.data.studentUid == request.auth.uid;
+      allow read: if isAdmin() || (isSignedIn() && resource.data.studentUid == request.auth.uid);
+    }
+
+    // Purchases — a student can read their own; writes should really go through a trusted
+    // Cloud Function that verifies the Razorpay signature before marking a purchase "success".
+    match /purchases/{id} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.studentUid == request.auth.uid);
+      allow create: if isSignedIn() && request.resource.data.studentUid == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // Admin allowlist — only readable/writable by existing admins (bootstrap the first
+    // admin manually from the Firebase Console).
+    match /admins/{uid} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+  }
+}

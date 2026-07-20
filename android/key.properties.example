@@ -1,0 +1,11 @@
+# Copy this file to android/key.properties (same folder) and fill in your real values.
+# NEVER commit the real key.properties or your .jks keystore file to version control —
+# they are already excluded in .gitignore.
+#
+# Generate a keystore first if you don't have one:
+#   keytool -genkey -v -keystore porasona-plus-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias porasonaplus
+
+storePassword=YOUR_KEYSTORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=porasonaplus
+storeFile=../porasona-plus-release.jks

@@ -1,0 +1,18 @@
+import 'package:flutter/material.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+
+class PdfViewerScreen extends StatelessWidget {
+  final String url;
+  final String title;
+  const PdfViewerScreen({super.key, required this.url, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: url.isEmpty
+          ? const Center(child: Text('No PDF available for this item yet.'))
+          : SfPdfViewer.network(url),
+    );
+  }
+}
