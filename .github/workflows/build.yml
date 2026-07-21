@@ -14,6 +14,7 @@ jobs:
       - run: |
           mkdir -p /tmp/gw
           cd /tmp/gw
+          touch settings.gradle
           gradle wrapper --gradle-version 8.4 --distribution-type all
           cp -r gradle "$GITHUB_WORKSPACE/android/"
           cp gradlew "$GITHUB_WORKSPACE/android/"
