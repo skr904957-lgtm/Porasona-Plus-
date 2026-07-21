@@ -11,7 +11,14 @@ jobs:
       - run: |
           echo "sdk.dir=$ANDROID_HOME" > android/local.properties
           echo "flutter.sdk=$(dirname $(dirname $(which flutter)))" >> android/local.properties
-      - run: cd android && gradle wrapper --gradle-version 8.4 --distribution-type all
+      - run: |
+          mkdir -p /tmp/gw
+          cd /tmp/gw
+          gradle wrapper --gradle-version 8.4 --distribution-type all
+          cp -r gradle "$GITHUB_WORKSPACE/android/"
+          cp gradlew "$GITHUB_WORKSPACE/android/"
+          cp gradlew.bat "$GITHUB_WORKSPACE/android/"
+          chmod +x "$GITHUB_WORKSPACE/android/gradlew"
       - run: flutter pub get
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
