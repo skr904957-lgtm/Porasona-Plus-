@@ -7,7 +7,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          flutter-version: '3.32.0'
       - run: |
           echo "sdk.dir=$ANDROID_HOME" > android/local.properties
           echo "flutter.sdk=$(dirname $(dirname $(which flutter)))" >> android/local.properties
@@ -21,8 +21,6 @@ jobs:
           cp gradlew.bat "$GITHUB_WORKSPACE/android/"
           chmod +x "$GITHUB_WORKSPACE/android/gradlew"
       - run: flutter pub get
-      - run: |
-          find ~/.pub-cache -path "*package_info_plus*/android/build.gradle" -exec sed -i '/^android {/a\    compileSdk 35' {} \;
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
         with:
