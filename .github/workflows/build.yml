@@ -22,9 +22,7 @@ jobs:
           chmod +x "$GITHUB_WORKSPACE/android/gradlew"
       - run: flutter pub get
       - run: |
-          find ~/.pub-cache -path "*package_info_plus*/android/build.gradle" | while read f; do
-            grep -q compileSdk "$f" || sed -i '/^android {/a\    compileSdk 35' "$f"
-          done
+          find ~/.pub-cache -path "*package_info_plus*/android/build.gradle" -exec sed -i '/^android {/a\    compileSdk 35' {} \;
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
         with:
