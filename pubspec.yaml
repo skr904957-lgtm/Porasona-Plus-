@@ -34,7 +34,7 @@ dependencies:
   # Media / viewers
   video_player: ^2.9.1
   chewie: ^1.8.5
-  syncfusion_flutter_pdfviewer: ^29.2.14
+  syncfusion_flutter_pdfviewer: ^31.1.19
   cached_network_image: ^3.4.1
   flutter_downloader: ^1.11.8
 
