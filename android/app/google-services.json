@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1059317217128",
+    "project_id": "porasona-plus-44b42",
+    "storage_bucket": "porasona-plus-44b42.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1059317217128:android:06c563200e21fce18548dd",
+        "android_client_info": {
+          "package_name": "com.porasonaplus.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBVEeTZfdFiWLNtPtPZdkM_KVDiDrWDnEE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
