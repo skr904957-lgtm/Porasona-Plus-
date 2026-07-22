@@ -18,7 +18,6 @@ def flutterVersionName = localProperties.getProperty('flutter.versionName') ?: '
 
 android {
     namespace "com.porasonaplus.app"
-    compileSdk 34
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -38,6 +37,7 @@ android {
         // App ID used for Play Store — matches the iosBundleId placeholder in firebase_options.dart
         applicationId "com.porasonaplus.app"
         minSdk 23
+        compileSdk 35
         targetSdk 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
