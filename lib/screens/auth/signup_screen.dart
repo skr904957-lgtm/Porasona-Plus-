@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import '../../app/theme.dart';
 import '../../app/routes.dart';
-import '../../providers/auth_provider.dart';
+import '../../providers/auth_provider.dart' as app_auth;
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -28,7 +28,7 @@ class _SignupScreenState extends State<SignupScreen> {
       _error = null;
     });
     try {
-      await context.read<AuthProvider>().signUp(
+      await context.read<app_auth.AuthProvider>().signUp(
             name: _nameCtrl.text.trim(),
             email: _emailCtrl.text.trim(),
             password: _passwordCtrl.text,

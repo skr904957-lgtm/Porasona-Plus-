@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import '../../app/theme.dart';
 import '../../app/routes.dart';
-import '../../providers/auth_provider.dart';
+import '../../providers/auth_provider.dart' as app_auth;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -27,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
       _error = null;
     });
     try {
-      await context.read<AuthProvider>().login(_emailCtrl.text.trim(), _passwordCtrl.text);
+      await context.read<app_auth.AuthProvider>().login(_emailCtrl.text.trim(), _passwordCtrl.text);
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed(AppRoutes.home);
     } on FirebaseAuthException catch (e) {
