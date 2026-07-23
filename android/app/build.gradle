@@ -49,8 +49,8 @@ android {
             // TODO: replace with your own upload keystore signing config before publishing to Play Store.
             // See android/key.properties.example in this project for the fields you need.
             signingConfig signingConfigs.debug
-            minifyEnabled true
-            shrinkResources true
+            minifyEnabled false
+            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
