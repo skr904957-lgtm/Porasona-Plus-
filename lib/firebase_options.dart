@@ -19,26 +19,26 @@ class DefaultFirebaseOptions {
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'REPLACE_WITH_YOUR_WEB_API_KEY',
     appId: 'REPLACE_WITH_YOUR_WEB_APP_ID',
-    messagingSenderId: '1059317217128',
-    projectId: 'porasona-plus-44b42',
-    authDomain: 'porasona-plus-44b42.firebaseapp.com',
-    storageBucket: 'porasona-plus-44b42.firebasestorage.app',
+    messagingSenderId: '1057074319828',
+    projectId: 'porasona-plus-b78c9',
+    authDomain: 'porasona-plus-b78c9.firebaseapp.com',
+    storageBucket: 'porasona-plus-b78c9.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBVEeTZfdFiWLNtPtPZdkM_KVDiDrWDnEE',
-    appId: '1:1059317217128:android:06c563200e21fce18548dd',
-    messagingSenderId: '1059317217128',
-    projectId: 'porasona-plus-44b42',
-    storageBucket: 'porasona-plus-44b42.firebasestorage.app',
+    apiKey: 'AIzaSyCDT4rtCBsvVj96zn45ZP0lBh9SYD7howc',
+    appId: '1:1057074319828:android:b05fc9b7afd07691848641',
+    messagingSenderId: '1057074319828',
+    projectId: 'porasona-plus-b78c9',
+    storageBucket: 'porasona-plus-b78c9.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'REPLACE_WITH_YOUR_IOS_API_KEY',
     appId: 'REPLACE_WITH_YOUR_IOS_APP_ID',
-    messagingSenderId: 'REPLACE_WITH_YOUR_SENDER_ID',
-    projectId: 'porasona-plus-44b42',
-    storageBucket: 'porasona-plus-44b42.firebasestorage.app',
+    messagingSenderId: '1057074319828',
+    projectId: 'porasona-plus-b78c9',
+    storageBucket: 'porasona-plus-b78c9.firebasestorage.app',
     iosBundleId: 'com.porasonaplus.app',
   );
 }
