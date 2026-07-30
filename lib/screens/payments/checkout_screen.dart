@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../../app/theme.dart';
-import '../../app/app_config.dart';
 import '../../app/routes.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/firestore_service.dart';
-import '../../services/payment_service.dart';
 import '../../models/course_model.dart';
 import '../../models/purchase_model.dart';
+
+// ---- আপনার PhonePe নম্বর এখানে বসানো আছে ----
+const String kPhonePeNumber = '7439988344';
 
 class CheckoutScreen extends StatefulWidget {
   final String courseId;
@@ -21,21 +21,17 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final _firestore = FirestoreService();
-  final _paymentService = PaymentService();
   final _couponCtrl = TextEditingController();
+  final _txnIdCtrl = TextEditingController();
   CourseModel? _course;
-  double _discount = 0;
-  bool _processing = false;
+  final double _discount = 0;
+  bool _submitting = false;
+  bool _submitted = false;
 
   @override
   void initState() {
     super.initState();
     _load();
-    _paymentService.init(
-      onSuccess: _onSuccess,
-      onError: _onError,
-      onExternalWallet: (_) {},
-    );
   }
 
   Future<void> _load() async {
@@ -44,66 +40,54 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _applyCoupon() async {
-    // Coupons are validated against the `coupons` collection managed by the admin.
-    // Wire this up to a real lookup once you've created coupon documents there.
     if (_couponCtrl.text.trim().isEmpty) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Enter a valid coupon — connect this to your coupons collection.')),
     );
   }
 
-  void _startPayment() {
+  Future<void> _submitPayment() async {
     if (_course == null) return;
-    final auth = context.read<AuthProvider>();
-    final amount = _course!.effectivePrice - _discount;
-    final orderId = const Uuid().v4(); // Replace with a real order_id from your backend's Razorpay Orders API call.
+    final txnId = _txnIdCtrl.text.trim();
+    if (txnId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Transaction ID লিখুন')),
+      );
+      return;
+    }
 
-    setState(() => _processing = true);
-    _paymentService.openCheckout(
-      razorpayKeyId: AppConfig.razorpayKeyId,
-      orderId: orderId,
-      amountInRupees: amount < 0 ? 0 : amount,
-      courseTitle: _course!.title,
-      studentName: auth.student?.name ?? '',
-      studentEmail: auth.student?.email ?? auth.firebaseUser?.email ?? '',
-      studentPhone: auth.student?.phone,
-    );
-  }
-
-  Future<void> _onSuccess(PaymentSuccessResponse response) async {
     final auth = context.read<AuthProvider>();
     final uid = auth.firebaseUser?.uid;
-    if (uid != null && _course != null) {
-      final purchase = PurchaseModel(
-        id: const Uuid().v4(),
-        studentUid: uid,
-        courseId: _course!.id,
-        courseTitle: _course!.title,
-        amount: _course!.effectivePrice - _discount,
-        razorpayPaymentId: response.paymentId,
-        razorpayOrderId: response.orderId,
-        status: PaymentStatus.success,
-        couponCode: _couponCtrl.text.trim().isEmpty ? null : _couponCtrl.text.trim(),
-        createdAt: DateTime.now(),
-      );
-      await _firestore.recordPurchase(purchase);
-      final updatedIds = [...(auth.student?.purchasedCourseIds ?? []), _course!.id];
-      await _firestore.updateStudent(uid, {'purchasedCourseIds': updatedIds});
-      await auth.refreshStudent();
-    }
-    if (!mounted) return;
-    setState(() => _processing = false);
-    Navigator.pushReplacementNamed(context, AppRoutes.paymentSuccess);
-  }
+    if (uid == null) return;
 
-  void _onError(PaymentFailureResponse response) {
-    setState(() => _processing = false);
-    Navigator.pushReplacementNamed(context, AppRoutes.paymentFailed);
+    setState(() => _submitting = true);
+
+    final amount = _course!.effectivePrice - _discount;
+    final purchase = PurchaseModel(
+      id: const Uuid().v4(),
+      studentUid: uid,
+      courseId: _course!.id,
+      courseTitle: _course!.title,
+      amount: amount < 0 ? 0 : amount,
+      phonepeTransactionId: txnId,
+      status: PaymentStatus.pending,
+      couponCode: _couponCtrl.text.trim().isEmpty ? null : _couponCtrl.text.trim(),
+      createdAt: DateTime.now(),
+    );
+
+    await _firestore.recordPurchase(purchase);
+
+    if (!mounted) return;
+    setState(() {
+      _submitting = false;
+      _submitted = true;
+    });
   }
 
   @override
   void dispose() {
-    _paymentService.dispose();
+    _couponCtrl.dispose();
+    _txnIdCtrl.dispose();
     super.dispose();
   }
 
@@ -112,10 +96,43 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (_course == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+
+    if (_submitted) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Payment Submitted')),
+        body: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.hourglass_top_rounded, size: 64, color: Colors.amber),
+              const SizedBox(height: 20),
+              const Text(
+                'আপনার পেমেন্ট রিভিউ করা হচ্ছে',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'অ্যাডমিন যাচাই করে কোর্স অ্যাক্সেস দিয়ে দেবেন, সাধারণত কিছু সময়ের মধ্যেই। ধন্যবাদ!',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 28),
+              ElevatedButton(
+                onPressed: () => Navigator.popUntil(context, (r) => r.isFirst),
+                child: const Text('হোমে ফিরে যান'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final amount = _course!.effectivePrice - _discount;
     return Scaffold(
       appBar: AppBar(title: const Text('Checkout')),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,23 +154,64 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ],
             ),
             const SizedBox(height: 24),
-            _row('Course Price', '₹${_course!.price.toStringAsFixed(0)}'),
-            if (_course!.discountPrice > 0) _row('Discount', '- ₹${(_course!.price - _course!.discountPrice).toStringAsFixed(0)}'),
-            if (_discount > 0) _row('Coupon Discount', '- ₹${_discount.toStringAsFixed(0)}'),
+            _row('Course Price', '৳${_course!.price.toStringAsFixed(0)}'),
+            if (_course!.discountPrice > 0) _row('Discount', '- ৳${(_course!.price - _course!.discountPrice).toStringAsFixed(0)}'),
             const Divider(height: 32),
-            _row('Total Payable', '₹${amount.toStringAsFixed(0)}', bold: true),
-            const Spacer(),
+            _row('Total Payable', '৳${amount.toStringAsFixed(0)}', bold: true),
+            const SizedBox(height: 28),
+
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.phone_android, size: 20),
+                      SizedBox(width: 8),
+                      Text('PhonePe দিয়ে পেমেন্ট করুন', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text('এই নম্বরে ৳${amount.toStringAsFixed(0)} পাঠান:', style: const TextStyle(fontSize: 13, color: Colors.grey)),
+                  const SizedBox(height: 4),
+                  SelectableText(
+                    kPhonePeNumber,
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: 1),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'পেমেন্ট করার পর, PhonePe app-এ পাওয়া Transaction ID/UTR নম্বরটি নিচে লিখে সাবমিট করুন। অ্যাডমিন যাচাই করার পর আপনার কোর্স আনলক হয়ে যাবে।',
+                    style: TextStyle(fontSize: 12.5, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+            TextField(
+              controller: _txnIdCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Transaction ID / UTR নম্বর',
+                prefixIcon: Icon(Icons.receipt_long_outlined),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _processing ? null : _startPayment,
-                child: _processing
+                onPressed: _submitting ? null : _submitPayment,
+                child: _submitting
                     ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Text('Proceed to Pay'),
+                    : const Text('পেমেন্ট জানিয়ে দিন'),
               ),
             ),
-            const SizedBox(height: 8),
-            const Text('Secured by Razorpay', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, fontSize: 12)),
           ],
         ),
       ),
