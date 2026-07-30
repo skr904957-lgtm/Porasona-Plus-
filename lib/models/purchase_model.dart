@@ -8,6 +8,7 @@ class PurchaseModel {
   final double amount;
   final String? razorpayPaymentId;
   final String? razorpayOrderId;
+  final String? phonepeTransactionId;
   final PaymentStatus status;
   final String? couponCode;
   final DateTime createdAt;
@@ -20,6 +21,7 @@ class PurchaseModel {
     required this.amount,
     this.razorpayPaymentId,
     this.razorpayOrderId,
+    this.phonepeTransactionId,
     this.status = PaymentStatus.pending,
     this.couponCode,
     required this.createdAt,
@@ -34,6 +36,7 @@ class PurchaseModel {
       amount: (map['amount'] ?? 0).toDouble(),
       razorpayPaymentId: map['razorpayPaymentId'],
       razorpayOrderId: map['razorpayOrderId'],
+      phonepeTransactionId: map['phonepeTransactionId'],
       status: PaymentStatus.values.firstWhere(
         (s) => s.name == (map['status'] ?? 'pending'),
         orElse: () => PaymentStatus.pending,
@@ -52,6 +55,7 @@ class PurchaseModel {
         'amount': amount,
         'razorpayPaymentId': razorpayPaymentId,
         'razorpayOrderId': razorpayOrderId,
+        'phonepeTransactionId': phonepeTransactionId,
         'status': status.name,
         'couponCode': couponCode,
         'createdAt': createdAt.millisecondsSinceEpoch,
